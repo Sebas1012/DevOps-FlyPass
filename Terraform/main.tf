@@ -14,22 +14,26 @@ provider "aws" {
 }
 
 module "vpc" {
-  source = "./modules/vpc"
-  vpc_name          = var.vpc_name
-  cidr_block        = var.cidr_block
-  public_subnets    = var.public_subnets
-  private_subnets   = var.private_subnets
-  tags              = var.tags
+  source          = "./modules/vpc"
+  vpc_name        = var.vpc_name
+  cidr_block      = var.cidr_block
+  public_subnets  = var.public_subnets
+  private_subnets = var.private_subnets
+  tags            = var.tags
 }
 
-# module "eks" {
-#   source = "./modules/eks"
-#   cluster_name    = var.eks_cluster_name
-#   cluster_version = var.eks_cluster_version
-#   vpc_id          = module.vpc.vpc_id
-#   subnets         = module.vpc.public_subnets
-#   tags            = var.tags
-# }
+module "eks" {
+  source               = "./modules/eks"
+  depends_on           = [module.vpc]
+  eks_cluster_name     = var.eks_cluster_name
+  eks_cluster_version  = var.eks_cluster_version
+  eks_cluster_role_arn = module.iam_role.eks_cluster_role_arn
+  eks_nodes_role_arn   = module.iam_role.eks_nodes_role_arn
+  vpc_id               = module.vpc.vpc_id
+  private_subnets_ids  = module.vpc.private_subnets
+  tags                 = var.tags
+
+}
 
 module "s3" {
   source          = "./modules/s3"
@@ -39,7 +43,7 @@ module "s3" {
 }
 
 module "ecr" {
-  source    = "./modules/ecr"
+  source        = "./modules/ecr"
   ecr_repo_name = var.ecr_repo_name
-  tags      = var.tags
+  tags          = var.tags
 }

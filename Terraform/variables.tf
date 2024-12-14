@@ -35,6 +35,16 @@ variable "eks_cluster_version" {
   default     = "1.26"
 }
 
+variable "eks_cluster_policies" {
+  description = "Lista de arn de políticas para el clúster de EKS"
+  type        = list(string)
+}
+
+variable "eks_nodes_policies" {
+  description = "Lista de arn de políticas para los nodos del clúster de EKS"
+  type        = list(string)
+}
+
 variable "s3_bucket_name" {
   description = "Nombre del bucket S3 que se creará"
   type        = string
