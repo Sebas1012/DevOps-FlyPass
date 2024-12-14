@@ -1,8 +1,6 @@
 resource "aws_vpc" "main" {
   cidr_block = var.cidr_block
-  tags       = merge(var.tags, { 
-    Name = var.vpc_name 
-  })
+  tags       = var.tags
 }
 
 resource "aws_subnet" "public" {
@@ -11,9 +9,7 @@ resource "aws_subnet" "public" {
   cidr_block        = each.value
   map_public_ip_on_launch = true
 
-  tags              = merge(var.tags, { 
-    Name = "public-${each.key}"
-  })
+  tags              = var.tags
 }
 
 resource "aws_subnet" "private" {
@@ -21,17 +17,13 @@ resource "aws_subnet" "private" {
   vpc_id    = aws_vpc.main.id
   cidr_block = each.value
 
-  tags      = merge(var.tags, { 
-    Name = "private-${each.key}",
-  })
+  tags      = var.tags
 }
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 
-  tags = merge(var.tags, {
-    Name = "internet-gateway"
-  })
+  tags = var.tags
 }
 
 resource "aws_route_table" "public" {
@@ -42,9 +34,7 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.gw.id
   }
 
-  tags = merge(var.tags, {
-    Name = "public-route-table"
-  })
+  tags = var.tags
 }
 
 resource "aws_route_table_association" "public" {
