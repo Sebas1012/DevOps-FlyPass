@@ -1,3 +1,7 @@
+locals {
+  private_subnets_list = values(var.private_subnets)
+}
+
 resource "aws_s3_bucket" "s3_bucket" {
   bucket = var.s3_bucket_name
   tags = var.tags
@@ -16,7 +20,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
         Resource = "${aws_s3_bucket.s3_bucket.arn}/*"
         Condition = {
           IpAddress = {
-            "aws:SourceIp" = var.private_subnets
+            "aws:SourceIp" = local.private_subnets_list
           }
         }
       }
