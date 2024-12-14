@@ -14,13 +14,12 @@ on:
   #     - release
   #     - main
 
-env:
-  image_tag: ${{ github.ref == 'refs/heads/main' && 'latest' || (github.ref == 'refs/heads/release' && 'beta') || (github.ref == 'refs/heads/develop' && 'dev') }}
-
 jobs:
   build-docker:
     name: "Build Docker Images"
     runs-on: ubuntu-latest
+    env:
+      image_tag: ${{ github.ref == 'refs/heads/main' && 'latest' || (github.ref == 'refs/heads/release' && 'beta') || (github.ref == 'refs/heads/develop' && 'dev') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
