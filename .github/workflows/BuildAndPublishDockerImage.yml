@@ -40,11 +40,14 @@ jobs:
         run: |
           set -e
           for dir in DockerFiles/*; do
-            docker build \
-              --tag ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.REPOSITORY_NAME }}:${image_name}-${env.image_tag} \
-              --file "$dir/Dockerfile" \
-              "$dir"
-              
+            if [ -d "$dir" ]; then
+              image_name=$(basename "$dir")
 
-            docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}:${image_name}-${env.image_tag}
+              docker build \
+                --tag ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.REPOSITORY_NAME }}:${image_name}-${env.image_tag} \
+                --file "$dir/Dockerfile" \
+                "$dir"
+              
+              docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}:${image_name}-${env.image_tag}
+            fi
           done
