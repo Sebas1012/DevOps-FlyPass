@@ -1,0 +1,1 @@
+FROM amazonlinux:2023.6.20241121.0
