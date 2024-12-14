@@ -18,9 +18,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
         Resource = "${aws_s3_bucket.s3_bucket.arn}/*"
         Condition = {
           IpAddress = {
-            "aws:SourceIp" = [
-              var.private_subnets
-            ]
+            "aws:SourceIp" = var.private_subnets
           }
         }
       }
