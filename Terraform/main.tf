@@ -38,8 +38,8 @@ module "s3" {
   private_subnets = var.private_subnets
 }
 
-# module "ecr" {
-#   source    = "./modules/ecr"
-#   repo_name = var.ecr_repo_name
-#   tags      = var.tags
-# }
+module "ecr" {
+  source    = "./modules/ecr"
+  ecr_repo_name = var.ecr_repo_name
+  tags      = var.tags
+}
