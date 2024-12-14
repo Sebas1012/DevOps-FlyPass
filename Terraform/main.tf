@@ -19,7 +19,6 @@ module "vpc" {
   cidr_block        = var.cidr_block
   public_subnets    = var.public_subnets
   private_subnets   = var.private_subnets
-  username          = var.username
   tags              = var.tags
 }
 
@@ -35,7 +34,6 @@ module "vpc" {
 module "s3" {
   source          = "./modules/s3"
   s3_bucket_name  = var.s3_bucket_name
-  username        = var.username
   tags            = var.tags
   private_subnets = var.private_subnets
 }

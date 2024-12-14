@@ -3,11 +3,6 @@ variable "s3_bucket_name" {
   type        = string
 }
 
-variable "username" {
-  description = "Nombre del creador de los recursos"
-  type        = string
-}
-
 variable "private_subnets" {
   description = "Lista de bloques CIDR para las subnets privadas"
   type        = list(string)

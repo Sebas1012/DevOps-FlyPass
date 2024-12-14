@@ -2,7 +2,6 @@ resource "aws_vpc" "main" {
   cidr_block = var.cidr_block
   tags       = merge(var.tags, { 
     Name = var.vpc_name 
-    Username = var.username
   })
 }
 
@@ -14,7 +13,6 @@ resource "aws_subnet" "public" {
 
   tags              = merge(var.tags, { 
     Name = "public-${each.key}"
-    Username = var.username 
   })
 }
 
@@ -25,6 +23,5 @@ resource "aws_subnet" "private" {
 
   tags      = merge(var.tags, { 
     Name = "private-${each.key}",
-    Username = var.username 
   })
 }
