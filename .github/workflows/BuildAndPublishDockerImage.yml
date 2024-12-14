@@ -21,6 +21,9 @@ jobs:
   build-docker:
     name: "Build Docker Images"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Dockerfiles
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,15 +42,15 @@ jobs:
       - name: Build and push Docker images
         run: |
           set -e
-          for dir in DockerFiles/*; do
+          for dir in */; do
             if [ -d "$dir" ]; then
               image_name=$(basename "$dir")
 
               docker build \
-                --tag ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.REPOSITORY_NAME }}:${image_name}-${env.image_tag} \
+                --tag "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.REPOSITORY_NAME }}:${image_name}-${env.image_tag}" \
                 --file "$dir/Dockerfile" \
                 "$dir"
               
-              docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}:${image_name}-${env.image_tag}
+              docker push "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}:${image_name}-${env.image_tag}"
             fi
           done
