@@ -33,10 +33,11 @@ module "vpc" {
 # }
 
 module "s3" {
-  source         = "./modules/s3"
-  s3_bucket_name = var.s3_bucket_name
-  username       = var.username
-  tags           = var.tags
+  source          = "./modules/s3"
+  s3_bucket_name  = var.s3_bucket_name
+  username        = var.username
+  tags            = var.tags
+  private_subnets = var.private_subnets
 }
 
 # module "ecr" {
