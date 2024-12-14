@@ -1,6 +1,9 @@
 resource "aws_vpc" "main" {
   cidr_block = var.cidr_block
-  tags       = merge(var.tags, { Name = var.vpc_name })
+  tags       = merge(var.tags, { 
+    Name = var.vpc_name 
+    Username = var.username
+  })
 }
 
 resource "aws_subnet" "public" {
@@ -8,12 +11,20 @@ resource "aws_subnet" "public" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = each.value
   map_public_ip_on_launch = true
-  tags              = merge(var.tags, { Name = "public-${each.key}" })
+
+  tags              = merge(var.tags, { 
+    Name = "public-${each.key}"
+    Username = var.username 
+  })
 }
 
 resource "aws_subnet" "private" {
   for_each = toset(var.private_subnets)
   vpc_id    = aws_vpc.main.id
   cidr_block = each.value
-  tags      = merge(var.tags, { Name = "private-${each.key}" })
+
+  tags      = merge(var.tags, { 
+    Name = "private-${each.key}",
+    Username = var.username 
+  })
 }

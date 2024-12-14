@@ -45,6 +45,11 @@ variable "ecr_repo_name" {
   type        = string
 }
 
+variable "username" {
+  description = "Nombre del creador de los recursos"
+  type        = string
+}
+
 variable "tags" {
   description = "Mapa de etiquetas para asignar a los recursos"
   type        = map(string)
