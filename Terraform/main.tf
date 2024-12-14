@@ -14,10 +14,10 @@ provider "aws" {
 }
 
 module "iam" {
-  source        = "./modules/iam"
+  source               = "./modules/iam"
   eks_cluster_policies = var.eks_cluster_policies
-  eks_nodes_policies  = var.eks_nodes_policies
-  tags          = var.tags
+  eks_nodes_policies   = var.eks_nodes_policies
+  tags                 = var.tags
 }
 
 module "vpc" {

@@ -17,7 +17,7 @@ resource "aws_eks_node_group" "eks-node-group" {
   node_role_arn   = var.eks_nodes_role_arn
   subnet_ids      = var.private_subnets_ids
   timeouts {
-    create = "10m"
+    create = "20m"
   }
   scaling_config {
     desired_size = 1
@@ -25,7 +25,7 @@ resource "aws_eks_node_group" "eks-node-group" {
     min_size     = 1
   }
 
-  instance_types = ["t2.nano"]
+  instance_types = ["t3.micro"]
 
   tags = var.tags
 
