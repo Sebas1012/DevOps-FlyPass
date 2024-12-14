@@ -3,8 +3,8 @@ name: 'Deploy Infra from Terraform'
 on:
   workflow_dispatch:
   push:
-    paths:
-      - "Terraform/**"
+    # paths:
+    #   - "Terraform/**"
     branches:
       - develop
 
