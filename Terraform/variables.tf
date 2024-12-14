@@ -16,12 +16,12 @@ variable "cidr_block" {
 
 variable "public_subnets" {
   description = "Lista de bloques CIDR para las subnets públicas"
-  type        = list(string)
+  type        = map(string)
 }
 
 variable "private_subnets" {
   description = "Lista de bloques CIDR para las subnets privadas"
-  type        = list(string)
+  type        = map(string)
 }
 
 variable "eks_cluster_name" {

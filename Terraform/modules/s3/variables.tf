@@ -5,7 +5,7 @@ variable "s3_bucket_name" {
 
 variable "private_subnets" {
   description = "Lista de bloques CIDR para las subnets privadas"
-  type        = list(string)
+  type        = map(string)
 }
 
 variable "tags" {
