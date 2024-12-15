@@ -39,6 +39,10 @@ jobs:
 
           cat ./deployment/deployment-template.yml
 
+      - name: Verify kubectl connection
+        run: |
+          kubectl get nodes
+
       - name: Apply Kubernetes Manifest
         run: |
-          kubectl apply -f ./deployment/deployment-template.yml
+          kubectl apply -f ./deployment/deployment-template.yml --v=7
