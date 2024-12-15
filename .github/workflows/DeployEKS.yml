@@ -29,9 +29,9 @@ jobs:
           export AWS_REGION=${{ secrets.AWS_REGION }}
           export IMAGE_TAG=${{ secrets.IMAGE_TAG }}
           export REPOSITORY_NAME=${{ secrets.REPOSITORY_NAME }}
-          envsubst < ./deployment/deployment.yaml > ./deployment/deployment-template.yaml
+          envsubst < ./deployment/deployment.yml > ./deployment/deployment-template.yml
 
       - name: Apply Kubernetes Manifest
         run: |
-          kubectl apply -f ./deployment/deployment-template.yaml
+          kubectl apply -f ./deployment/deployment-template.yml
 
