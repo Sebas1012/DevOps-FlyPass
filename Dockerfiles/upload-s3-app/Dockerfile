@@ -1,1 +1,15 @@
-FROM amazonlinux:2023.6.20241121.0
+FROM amazonlinux:2
+
+WORKDIR /usr/src/upload_s3
+
+RUN yum install -y aws-cli bash
+
+COPY upload_s3.sh ./
+
+ENV S3_BUCKET=${AWS_S3_BUCKET_NAME}
+ENV S3_OUTPUT_FOLDER=outputs/
+ENV LOCAL_FOLDER=/data/ip_log.txt
+
+RUN chmod +x upload_s3.sh
+
+CMD ["./upload_s3.sh"]

@@ -14,9 +14,6 @@ on:
   #     - release
   #     - main
 
-env:
-  image_tag: ${{ github.ref == 'refs/heads/main' && 'latest' || (github.ref == 'refs/heads/develop' && 'beta') }}
-
 jobs:
   build-docker:
     name: "Build Docker Images"
