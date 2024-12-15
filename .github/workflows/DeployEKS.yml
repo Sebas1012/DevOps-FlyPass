@@ -34,10 +34,11 @@ jobs:
           export AWS_REGION=${{ secrets.AWS_REGION }}
           export IMAGE_TAG=${{ secrets.IMAGE_TAG }}
           export REPOSITORY_NAME=${{ secrets.REPOSITORY_NAME }}
-          # Reemplaza las variables en el archivo YAML
+
           envsubst < ./deployment/deployment.yml > ./deployment/deployment-template.yml
+
+          cat ./deployment/deployment-template.yml
 
       - name: Apply Kubernetes Manifest
         run: |
-          # Aplica el manifiesto de Kubernetes
-          kubectl apply -f ./deployment/deployment-template.yml --validate=false
+          kubectl apply -f ./deployment/deployment-template.yml
