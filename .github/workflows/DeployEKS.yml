@@ -2,10 +2,13 @@ name: Deploy Kubernetes Pod
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
+    paths:
+      - "k8s/**"
     branches:
       - develop
-
+      - release
+      - main
 jobs:
   deploy:
     runs-on: ubuntu-latest

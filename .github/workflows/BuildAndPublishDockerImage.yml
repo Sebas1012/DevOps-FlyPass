@@ -1,18 +1,13 @@
 name: "Build-Upload-DockerImages"
 on:
   workflow_dispatch:
-  push:
-    # paths:
-    #   - "Terraform/**"
+  pull_request:
+    paths:
+      - "DockerFiles/**"
     branches:
       - develop
-  # pull_request:
-  #   paths:
-  #     - "DockerFiles/**"
-  #   branches:
-  #     - develop
-  #     - release
-  #     - main
+      - release
+      - main
 
 jobs:
   build-docker:
