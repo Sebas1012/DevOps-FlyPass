@@ -51,6 +51,6 @@ jobs:
                 --file "$dir/Dockerfile" \
                 "$dir"
               
-              docker push "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}:${image_name}"
+              docker push "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.REPOSITORY_NAME }}:${image_name}"
             fi
           done
