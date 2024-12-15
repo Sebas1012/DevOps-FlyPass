@@ -42,7 +42,9 @@ jobs:
             if [ -d "$dir" ]; then
               image_name=$(basename "$dir")
 
-              if [ "$dir" == "upload-s3-app" ]; then
+              echo "$image_name"
+
+              if [ "$image_name" == "upload-s3-app" ]; then
                 envsubst < ./upload-s3-app/Dockerfile.tmp > ./upload-s3-app/Dockerfile
               fi
 
