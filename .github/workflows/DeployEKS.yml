@@ -31,15 +31,13 @@ jobs:
           aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{
             secrets.AWS_EKS_CLUSTER_NAME }}
 
-      - name: Prepare Kubernetes Deployment Manifest
+      - name: Prepare Kubernetes Pod Manifest
         run: |
           export AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
           export AWS_REGION=${{ secrets.AWS_REGION }}
           export REPOSITORY_NAME=${{ secrets.REPOSITORY_NAME }}
 
-          envsubst < ./deployment/deployment.yml > ./deployment/deployment-template.yml
-
-          cat ./deployment/deployment-template.yml
+          envsubst < ./pod/pod.yml > ./pod/pod-template.yml
 
       - name: Verify kubectl connection
         run: |
@@ -47,4 +45,4 @@ jobs:
 
       - name: Apply Kubernetes Manifest
         run: |
-          kubectl apply -f ./deployment/deployment-template.yml --v=7
+          kubectl apply -f ./pod/pod-template.yml --v=7

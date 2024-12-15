@@ -46,7 +46,6 @@ jobs:
 
               if [ "$dir" == "upload-s3-app/" ]; then
                 envsubst < ./upload-s3-app/Dockerfile.tmp > ./upload-s3-app/Dockerfile
-                cat ./upload-s3-app/Dockerfile
               fi
 
               ls -l $dir
