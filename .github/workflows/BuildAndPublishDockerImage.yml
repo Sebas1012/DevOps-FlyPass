@@ -46,6 +46,8 @@ jobs:
             if [ -d "$dir" ]; then
               image_name=$(basename "$dir")
 
+              echo "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.REPOSITORY_NAME }}:${image_name}"
+
               docker build \
                 --tag "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.REPOSITORY_NAME }}:${image_name}" \
                 --file "$dir/Dockerfile" \
