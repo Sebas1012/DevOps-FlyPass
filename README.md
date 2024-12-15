@@ -46,6 +46,8 @@ En mi caso y según la definición de la prueba, se habilitaron las siguientes r
 ## Notas finales:
 En la infraestructura de Terraform, generé 4 subnets (*2 públicas y 2 privadas*) en mi VPC como medida adicional, por si fueran necesarias.
 
+Como extra decidi que en el script que obtiene la direccion ipv4 privada tambien se anexaran la ipv6 e ipv4 publica siempre y cuando sea capaz de obtenerlas.
+
 Finalmente, agradezco la oportunidad y la confianza depositada en mí, dándome la posibilidad de pertenecer al equipo. Me divertí realizando el proyecto y, independientemente del resultado, agradecería que me brindaran retroalimentación con respecto a mi desempeño en la prueba.
 
 <p align="center">
