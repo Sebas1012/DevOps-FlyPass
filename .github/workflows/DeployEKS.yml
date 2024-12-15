@@ -30,9 +30,9 @@ jobs:
 
       - name: Prepare Kubernetes Deployment Manifest
         run: |
-          export AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
-          export AWS_REGION=${{ secrets.AWS_REGION }}
-          export REPOSITORY_NAME=${{ secrets.REPOSITORY_NAME }}
+          export AWS_ACCOUNT_ID=476114115899
+          export AWS_REGION=us-west-2
+          export REPOSITORY_NAME=dev-flypass-test-ecr
 
           envsubst < ./deployment/deployment.yml > ./deployment/deployment-template.yml
 
