@@ -4,6 +4,8 @@ WORKDIR /usr/src/get_ip
 
 COPY get_ip.py .
 
+RUN pip install requests
+
 VOLUME ["/data"]
 
-CMD ["python3", "get_ip.py"]
+CMD ["sh", "-c", "while true; do python3 /usr/src/get_ip/get_ip.py; sleep 60; done"]
