@@ -29,15 +29,14 @@ jobs:
             secrets.AWS_EKS_CLUSTER_NAME }}
 
       - name: Prepare Kubernetes Deployment Manifest
-        run: |
-          export AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
-          export AWS_REGION=${{ secrets.AWS_REGION }}
-          export IMAGE_TAG=${{ secrets.IMAGE_TAG }}
-          export REPOSITORY_NAME=${{ secrets.REPOSITORY_NAME }}
-
-          envsubst < ./deployment/deployment.yml > ./deployment/deployment-template.yml
-
-          cat ./deployment/deployment-template.yml
+        uses: nowactions/envsubst@v1
+        with:
+          input: ./deployment.yaml
+          output: ./deployment-ready.yaml
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          REPOSITORY_NAME: ${{ secrets.REPOSITORY_NAME }}
 
       - name: Verify kubectl connection
         run: |
