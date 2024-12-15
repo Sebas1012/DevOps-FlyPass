@@ -44,7 +44,7 @@ def main():
         ipv6 = obtener_ipv6()
         ip_publica = obtener_ip_publica()
 
-        print(f"IP Privada: {ip_privada}, IPV6: {ipv6}, IP Publica: {ip_publica}")
+        print(f"IPv4 Privada: {ip_privada}, IPV6: {ipv6}, IPv4 Publica: {ip_publica}")
         guardar_ips_en_archivo(archivo, ip_privada, ipv6, ip_publica)
 
         time.sleep(60)
