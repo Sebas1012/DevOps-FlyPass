@@ -45,5 +45,5 @@ jobs:
       run: terraform plan
 
     - name: Terraform Apply
-      if: github.event_name == 'pull_request' && github.ref == 'refs/heads/develop'
+      if: github.event_name == 'pull_request'
       run: terraform apply -auto-approve -var-file=./terraform.tfvars
