@@ -46,6 +46,8 @@ jobs:
                 envsubst < ./upload-s3-app/Dockerfile.tmp > ./upload-s3-app/Dockerfile
               fi
 
+              ls -l $dir
+
               docker build \
                 --no-cache \
                 --tag "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.REPOSITORY_NAME }}:${image_name}" \
