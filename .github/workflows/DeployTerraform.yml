@@ -35,11 +35,11 @@ jobs:
       run: terraform init
 
     - name: Terraform Validate
-      if: github.event_name == 'push' && github.ref == 'refs/heads/feature/**'
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/feature/')
       run: terraform validate
 
     - name: Terraform Plan
-      if: github.event_name == 'push' && github.ref == 'refs/heads/feature/**'
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/feature/')
       run: terraform plan
 
     - name: Terraform Apply
