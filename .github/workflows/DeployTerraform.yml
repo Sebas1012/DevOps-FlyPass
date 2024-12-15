@@ -9,6 +9,9 @@ on:
       - develop
       - release
       - main
+  push:
+    branches:
+      - feature/**
 
 jobs:
   apply:
@@ -32,7 +35,13 @@ jobs:
       run: terraform init
 
     - name: Terraform Validate
+      if: github.event_name == 'push' && github.ref == 'refs/heads/feature/**'
       run: terraform validate
 
+    - name: Terraform Plan
+      if: github.event_name == 'push' && github.ref == 'refs/heads/feature/**'
+      run: terraform plan
+
     - name: Terraform Apply
+      if: github.event_name == 'pull_request' && github.ref == 'refs/heads/develop'
       run: terraform apply -auto-approve -var-file=./terraform.tfvars
