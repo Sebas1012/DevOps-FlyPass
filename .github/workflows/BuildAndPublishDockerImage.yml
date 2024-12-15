@@ -33,8 +33,8 @@ jobs:
 
       - name: Build and push Docker images
         run: |
-          export AWS_ACCESS_KEY_ID=${{ secrets.TF_AWS_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.TF_AWS_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ secrets.TF_AWS_ACCESS_KEY }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.TF_AWS_SECRET_KEY }}
           export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
 
           set -e
@@ -46,6 +46,7 @@ jobs:
 
               if [ "$dir" == "upload-s3-app/" ]; then
                 envsubst < ./upload-s3-app/Dockerfile.tmp > ./upload-s3-app/Dockerfile
+                cat ./upload-s3-app/Dockerfile
               fi
 
               ls -l $dir
