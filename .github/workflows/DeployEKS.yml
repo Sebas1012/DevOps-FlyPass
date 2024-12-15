@@ -1,0 +1,37 @@
+name: Deploy Kubernetes Pod
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./k8s
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS CLI
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.TF_AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.TF_AWS_SECRET_KEY }}
+          aws configure set region ${{ secrets.AWS_REGION }}
+
+      - name: Prepare Kubernetes Deployment Manifest
+        run: |
+          export AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+          export AWS_REGION=${{ secrets.AWS_REGION }}
+          export IMAGE_TAG=${{ secrets.IMAGE_TAG }}
+          export REPOSITORY_NAME=${{ secrets.REPOSITORY_NAME }}
+          envsubst < ./deployment/deployment-template.yaml > ./deployment/deployment.yaml
+
+      - name: Apply Kubernetes Manifest
+        run: |
+          kubectl apply -f ./deployment/deployment.yaml
+
