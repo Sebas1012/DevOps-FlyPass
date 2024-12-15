@@ -1,6 +1,6 @@
 FROM amazonlinux:2
 
-WORKDIR /usr/src/upload_s3
+WORKDIR /data/upload_s3
 
 RUN yum install -y aws-cli bash
 
