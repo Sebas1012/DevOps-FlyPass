@@ -16,6 +16,11 @@ ENV S3_BUCKET=dev-flypass-test-s3
 ENV S3_OUTPUT_FOLDER=outputs/
 ENV LOCAL_FOLDER=/data/ip_log.txt
 
+# Solo con fines de prueba
+ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+ENV AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+
 RUN chmod +x upload_s3.sh
 
 VOLUME ["/data"]
