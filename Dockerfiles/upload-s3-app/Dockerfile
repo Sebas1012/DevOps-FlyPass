@@ -10,8 +10,7 @@ RUN apk add --no-cache \
     groff \
     less \
     python3 \
-    py3-pip && \
-    pip install --no-cache-dir awscli
+    aws-cli
 
 COPY upload_s3.sh .
 
