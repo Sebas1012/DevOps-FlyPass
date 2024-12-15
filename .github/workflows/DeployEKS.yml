@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./k8s/deployment
+        working-directory: ./k8s
 
     steps:
       - name: Checkout code
@@ -29,14 +29,14 @@ jobs:
             secrets.AWS_EKS_CLUSTER_NAME }}
 
       - name: Prepare Kubernetes Deployment Manifest
-        uses: danielr1996/envsubst-action@1.0.0
-        with:
-          input: deployment.yml
-          output: deployment-template.yml
-        env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          REPOSITORY_NAME: ${{ secrets.REPOSITORY_NAME }}
+        run: |
+          export AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+          export AWS_REGION=${{ secrets.AWS_REGION }}
+          export REPOSITORY_NAME=${{ secrets.REPOSITORY_NAME }}
+
+          envsubst < ./deployment/deployment.yml > ./deployment/deployment-template.yml
+
+          cat ./deployment/deployment-template.yml
 
       - name: Verify kubectl connection
         run: |
@@ -44,4 +44,4 @@ jobs:
 
       - name: Apply Kubernetes Manifest
         run: |
-          kubectl apply -f ./deployment-template.yml --v=7
+          kubectl apply -f ./deployment/deployment-template.yml --v=7
