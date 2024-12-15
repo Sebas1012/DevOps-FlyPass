@@ -31,8 +31,8 @@ jobs:
       - name: Prepare Kubernetes Deployment Manifest
         uses: nowactions/envsubst@v1
         with:
-          input: ./deployment.yaml
-          output: ./deployment-ready.yaml
+          input: ./deployment/deployment.yml
+          output: ./deployment/deployment-template.yml
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
