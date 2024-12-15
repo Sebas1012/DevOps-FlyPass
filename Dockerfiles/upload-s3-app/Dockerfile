@@ -14,6 +14,4 @@ RUN chmod +x upload_s3.sh
 
 VOLUME ["/data"]
 
-RUN aws s3 ls && ls -l
-
 CMD ["./upload_s3.sh"]
