@@ -2,8 +2,8 @@ name: "Build-Upload-DockerImages"
 on:
   workflow_dispatch:
   push:
-    # paths:
-    #   - "DockerFiles/**"
+    paths:
+      - "DockerFiles/**"
     branches:
       - develop
       - release
