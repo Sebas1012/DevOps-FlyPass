@@ -1,9 +1,10 @@
 name: "Build-Upload-DockerImages"
+
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - "DockerFiles/**"
+      - "Dockerfiles/**"
     branches:
       - develop
       - release
