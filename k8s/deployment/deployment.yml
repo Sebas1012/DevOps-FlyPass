@@ -15,7 +15,7 @@ spec:
   - name: upload-s3-app
     image: "${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/${REPOSITORY_NAME}:upload-s3-app"
     imagePullPolicy: Always
-    command: ["/bin/sh"]
+    command: ["sh", "-c", "/usr/src/upload_s3/upload_s3.sh"]
     volumeMounts:
     - name: shared-volume
       mountPath: /data

@@ -4,4 +4,6 @@ WORKDIR /usr/src/get_ip
 
 COPY get_ip.py ./
 
+VOLUME ["/data"]
+
 CMD ["python3", "get_ip.py"]
