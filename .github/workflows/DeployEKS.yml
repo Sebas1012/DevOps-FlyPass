@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./k8s
+        working-directory: ./k8s/deployment
 
     steps:
       - name: Checkout code
@@ -31,8 +31,8 @@ jobs:
       - name: Prepare Kubernetes Deployment Manifest
         uses: nowactions/envsubst@v1
         with:
-          input: ./deployment/deployment.yml
-          output: ./deployment/deployment-template.yml
+          input: ./deployment.yml
+          output: ./deployment-template.yml
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -44,4 +44,4 @@ jobs:
 
       - name: Apply Kubernetes Manifest
         run: |
-          kubectl apply -f ./deployment/deployment-template.yml --v=7
+          kubectl apply -f ./deployment-template.yml --v=7
