@@ -39,15 +39,14 @@ def guardar_ips_en_archivo(archivo, ip_privada, ipv6, ip_publica):
 
 def main():
     archivo = "/data/ip_log.txt"
-    while True:
-        ip_privada = obtener_ip_privada()
-        ipv6 = obtener_ipv6()
-        ip_publica = obtener_ip_publica()
 
-        print(f"IPv4 Privada: {ip_privada}; IPV6: {ipv6}; IPv4 Publica: {ip_publica}")
-        guardar_ips_en_archivo(archivo, ip_privada, ipv6, ip_publica)
+    ip_privada = obtener_ip_privada()
+    ipv6 = obtener_ipv6()
+    ip_publica = obtener_ip_publica()
 
-        time.sleep(60)
+    print(f"IPv4 Privada: {ip_privada}; IPV6: {ipv6}; IPv4 Publica: {ip_publica}")
+    guardar_ips_en_archivo(archivo, ip_privada, ipv6, ip_publica)
+
 
 if __name__ == "__main__":
     main()

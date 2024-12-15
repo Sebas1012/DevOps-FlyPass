@@ -7,7 +7,6 @@ spec:
   - name: get-ip-app
     image: "${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/${REPOSITORY_NAME}:get-ip-app"
     imagePullPolicy: Always
-    # command: ["sh", "-c", "while true; do python3 /usr/src/get_ip/get_ip.py; sleep 3600; done"]
     volumeMounts:
     - name: shared-volume
       mountPath: /data
@@ -15,7 +14,6 @@ spec:
   - name: upload-s3-app
     image: "${AWS_ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/${REPOSITORY_NAME}:upload-s3-app"
     imagePullPolicy: Always
-    # command: ["sh", "-c", "/usr/src/upload_s3/upload_s3.sh"]
     volumeMounts:
     - name: shared-volume
       mountPath: /data
