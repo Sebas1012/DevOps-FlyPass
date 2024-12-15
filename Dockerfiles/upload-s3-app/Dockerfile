@@ -1,8 +1,6 @@
 FROM alpine:3.21.0
 
-RUN mkdir -p /data/upload_s3 && chmod 777 /data/upload_s3
-
-WORKDIR /data/upload_s3
+WORKDIR /usr/src/upload_s3
 
 RUN apk add --no-cache \
     bash \
