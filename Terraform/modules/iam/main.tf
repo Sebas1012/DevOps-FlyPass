@@ -201,12 +201,17 @@ resource "aws_iam_policy" "tf_platform" {
           "logs:CreateLogGroup",
           "logs:DeleteLogGroup",
           "logs:PutRetentionPolicy",
-          "logs:DescribeLogGroups",
           "logs:ListTagsForResource",
           "logs:TagResource",
           "logs:UntagResource"
         ]
         Resource = "arn:aws:logs:${local.region}:${local.account_id}:log-group:/aws/eks/*"
+      },
+      {
+        Sid      = "CloudWatchLogsDescribe"
+        Effect   = "Allow"
+        Action   = "logs:DescribeLogGroups"
+        Resource = "*"
       }
     ]
   })
