@@ -1,4 +1,4 @@
-# DevOps FlyPass — Reto técnico Cloud Engineer
+# CloudOps FlyPass — Reto técnico Cloud Engineer
 
 Solución al reto técnico: un **CronJob en EKS** que cada 5 minutos obtiene la IP privada del pod, la escribe en un archivo `.txt` cuyo nombre es el timestamp de ejecución, y lo sube a S3 — todo desplegado con **Terraform**, automatizado con **GitHub Actions** y autenticado **sin una sola access key** (OIDC + IRSA).
 
