@@ -112,6 +112,24 @@ kubectl logs -n flypass <pod> -c get-ip                 # "Timestamp de ejecuci�
 aws s3 ls s3://flypass-test-dev-outputs-<acct>/outputs/ # los .txt con nombre timestamp
 ```
 
+## Referencias
+
+**OIDC (GitHub Actions → AWS)**
+- [Configuring OpenID Connect in Amazon Web Services — GitHub Docs](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
+- [About security hardening with OpenID Connect — GitHub Docs](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
+- [Create an OpenID Connect identity provider in IAM — AWS Docs](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html)
+- [aws-actions/configure-aws-credentials — GitHub](https://github.com/aws-actions/configure-aws-credentials)
+
+**IRSA (IAM Roles for Service Accounts)**
+- [IAM roles for service accounts — AWS EKS Docs](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
+- [Identity and Access Management — EKS Best Practices Guide](https://docs.aws.amazon.com/eks/latest/best-practices/identity-and-access-management.html)
+
+**Terraform en AWS (estructura y buenas prácticas)**
+- [Best practices for using the Terraform AWS Provider — AWS Prescriptive Guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/terraform-aws-provider-best-practices/introduction.html)
+- [Repository structure — AWS Prescriptive Guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/terraform-aws-provider-best-practices/structure.html)
+- [S3 backend (state y lockfile nativo) — Terraform Docs](https://developer.hashicorp.com/terraform/language/backend/s3)
+- [Custom validation rules en variables — Terraform Docs](https://developer.hashicorp.com/terraform/language/values/variables#custom-validation-rules)
+
 ---
 
 <p align="center">
