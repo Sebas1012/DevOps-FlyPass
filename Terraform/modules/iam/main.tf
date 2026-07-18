@@ -177,6 +177,7 @@ resource "aws_iam_policy" "tf_platform" {
         Sid    = "IamOidcProviders"
         Effect = "Allow"
         Action = [
+          "iam:ListOpenIDConnectProviders",
           "iam:CreateOpenIDConnectProvider",
           "iam:DeleteOpenIDConnectProvider",
           "iam:GetOpenIDConnectProvider",
