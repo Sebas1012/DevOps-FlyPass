@@ -1,0 +1,87 @@
+name: Build and Deploy App
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - "Dockerfiles/**"
+      - "k8s/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-west-2
+  ECR_REPOSITORY: flypass-dev-app
+  EKS_CLUSTER: flypass-dev-eks
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app:
+          - get-ip
+          - upload-s3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/flypass-dev-gha-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          IMAGE="$REGISTRY/$ECR_REPOSITORY:${{ matrix.app }}-$SHORT_SHA"
+          docker build -t "$IMAGE" "Dockerfiles/${{ matrix.app }}-app"
+          docker push "$IMAGE"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/flypass-dev-gha-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$EKS_CLUSTER"
+
+      - name: Render and apply manifests
+        env:
+          ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        run: |
+          export ECR_REPOSITORY_URL="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY"
+          export IMAGE_TAG="${GITHUB_SHA::7}"
+          export S3_BUCKET="flypass-dev-outputs-$ACCOUNT_ID"
+          export IRSA_ROLE_ARN="arn:aws:iam::$ACCOUNT_ID:role/flypass-dev-s3-uploader"
+
+          mkdir -p rendered
+          for manifest in namespace serviceaccount cronjob; do
+            envsubst < "k8s/$manifest.yml" > "rendered/$manifest.yml"
+          done
+
+          kubectl apply -f rendered/namespace.yml
+          kubectl apply -f rendered/serviceaccount.yml
+          kubectl apply -f rendered/cronjob.yml
+
+      - name: Verify CronJob
+        run: kubectl get cronjob -n flypass ip-reporter
