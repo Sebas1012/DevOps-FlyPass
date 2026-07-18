@@ -15,5 +15,5 @@ output "s3_uploader_role_arn" {
 
 output "github_oidc_provider_arn" {
   description = "ARN del OIDC provider de GitHub Actions"
-  value       = aws_iam_openid_connect_provider.github.arn
+  value       = data.aws_iam_openid_connect_provider.github.arn
 }

@@ -6,13 +6,10 @@ locals {
   region     = data.aws_region.current.region
 }
 
-resource "aws_iam_openid_connect_provider" "github" {
-  url            = "https://token.actions.githubusercontent.com"
-  client_id_list = ["sts.amazonaws.com"]
-  thumbprint_list = [
-    "6938fd4d98bab03faadb97b34396831e3780aea1",
-    "1c58a3a8518e8759bf075b76b750d4f2df264fcd"
-  ]
+# El OIDC provider de GitHub es único por cuenta y ya existía en esta;
+# se referencia como data source para no modificarlo ni destruirlo.
+data "aws_iam_openid_connect_provider" "github" {
+  url = "https://token.actions.githubusercontent.com"
 }
 
 resource "aws_iam_role" "gha_terraform" {
@@ -24,7 +21,7 @@ resource "aws_iam_role" "gha_terraform" {
       Effect = "Allow"
       Action = "sts:AssumeRoleWithWebIdentity"
       Principal = {
-        Federated = aws_iam_openid_connect_provider.github.arn
+        Federated = data.aws_iam_openid_connect_provider.github.arn
       }
       Condition = {
         StringEquals = {
@@ -314,7 +311,7 @@ resource "aws_iam_role" "gha_deploy" {
       Effect = "Allow"
       Action = "sts:AssumeRoleWithWebIdentity"
       Principal = {
-        Federated = aws_iam_openid_connect_provider.github.arn
+        Federated = data.aws_iam_openid_connect_provider.github.arn
       }
       Condition = {
         StringEquals = {
