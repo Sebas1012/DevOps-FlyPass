@@ -1,54 +1,159 @@
-# DevOps-FlyPass
-Este repositorio contiene todo el código fuente para la solución del reto técnico para el rol de **DevOps Engineer** en **FlyPass**.
+# CloudOps FlyPass — Reto técnico Cloud Engineer
 
-## Explicación:
-El proyecto consta de 4 partes importantes, que son `.github/`, `Dockerfiles/`, `Terraform/` y `k8s/`. A continuación, se presenta una explicación del contenido de cada una de las carpetas:
+Solución al reto técnico: un **CronJob en EKS** que cada 5 minutos obtiene la IP privada del pod, la escribe en un archivo `.txt` cuyo nombre es el timestamp de ejecución, y lo sube a S3 — todo desplegado con **Terraform**, automatizado con **GitHub Actions** y autenticado **sin una sola access key** (OIDC + IRSA).
 
-- **.github/**: Contiene los pipelines necesarios para el `CI/CD` del proyecto, permitiendo automatizar la integración y el despliegue de cada uno de los componentes (*Infraestructura, Pods, Imágenes Docker*). 
+## Arquitectura
 
-- **Dockerfiles/**: Contiene 2 aplicaciones con su lógica y `Dockerfiles`, las cuales son construidas y desplegadas en `ECR` mediante uno de los pipelines.
+![Arquitectura](docs/arquitectura.png)
 
-- **Terraform/**: Contiene toda la infraestructura necesaria para que el proyecto funcione con servicios de AWS como `ECR`, `IAM`, `EKS`, `VPC` y `S3`. Su validación y despliegue también se realizan automáticamente mediante pipelines.
+La idea general en 4 líneas:
 
-- **k8s/**: Contiene el manifiesto para generar el pod principal que contiene los 2 contenedores generados anteriormente. El pod se despliega desde uno de los pipelines de manera automatizada.
+1. Una **VPC /16** con 2 subnets públicas (NAT / futuro ALB) y 2 privadas (nodos EKS), en 2 AZs.
+2. Un cluster **EKS** cuyos nodos viven solo en las subnets privadas: sin IP pública, salida por NAT, y el tráfico a S3 por un **VPC Endpoint** (red interna, sin costo de NAT).
+3. Un **CronJob** con un pod de dos contenedores (patrón sidecar) que comparten un volumen: uno escribe el archivo, el otro lo sube a `s3://<bucket>/outputs/`.
+4. **GitHub Actions** se autentica en AWS con OIDC y el pod con IRSA: credenciales temporales, emitidas al momento, sin secretos guardados.
 
-Entendiendo todo lo anterior, considero importante proporcionar algunos detalles que permitan entender mejor la estructura del proyecto.
+## Estructura del repositorio
 
-En primer lugar, la arquitectura definida para manejar la infraestructura de `Terraform` se basa en "[`terraform-aws-provider-best-practices`](https://docs.aws.amazon.com/es_es/prescriptive-guidance/latest/terraform-aws-provider-best-practices/structure.html)", que forma parte de la documentación oficial de AWS sobre cómo se recomienda manejar los proyectos en `Terraform` para permitir una mayor escalabilidad.
+```
+├── .github/workflows/
+│   ├── terraform-plan.yml    # feature/PR: fmt, init, validate, plan
+│   ├── terraform-apply.yml   # develop (post-merge): init, apply
+│   └── deploy-app.yml        # develop: build imágenes → ECR → kubectl apply
+├── Dockerfiles/
+│   ├── get-ip-app/           # contenedor 1: Python, escribe <timestamp>.txt
+│   └── upload-s3-app/        # contenedor 2: sube el archivo a S3 vía IRSA
+├── k8s/
+│   ├── namespace.yml
+│   ├── serviceaccount.yml    # anotado con el rol IRSA
+│   └── cronjob.yml           # el pod sidecar, cada 5 minutos
+├── Terraform/
+│   ├── modules/
+│   │   ├── vpc/              # VPC /16, subnets, NAT, route tables, endpoint S3
+│   │   ├── eks/              # cluster, node group, SGs, OIDC provider, add-on observabilidad
+│   │   ├── s3/               # bucket outputs/ (versioning, cifrado, TLS-only)
+│   │   ├── ecr/              # repositorio (tags inmutables, scan on push)
+│   │   └── iam/              # roles OIDC de GitHub + rol IRSA del pod
+│   └── envs/dev/             # main, variables (con validaciones), outputs, tfvars, backend
+└── docs/                     # diagrama de arquitectura
+```
 
-Por otro lado, decidí manejar la definición y el despliegue del `pod` de manera independiente a `Terraform` ya que quería tener todo más segmentado. Tras leer algunos foros, se recomendaba tener esa parte fuera de `Terraform`, ya que de este modo lograríamos *mayor flexibilidad al realizar cambios*.
+Los módulos son genéricos (nada hardcodeado); `envs/dev` decide los valores. Crear otro ambiente es copiar esa carpeta y cambiar el tfvars.
 
-También hice uso de técnicas como el `replace token` con `envsubst` para autenticar uno de los contenedores con AWS y generar dinámicamente las `URIs de ECR` en el `manifiesto del pod`. Con esto, garantizamos la seguridad de no exponer datos sensibles y modificamos archivos del repositorio en tiempo de ejecución del pipeline.
+## Cómo funciona el flujo del CronJob
 
-## Branching y Seguridad:
-Principalmente diseñé el siguiente gitflow como propuesta para tener una mayor robustez al desplegar en los diferentes ambientes y seguridad al realizar cambios en el repositorio, ya que las ramas como `develop`, `release` y `master` están protegidas y solo se pueden modificar a través de `pull requests`.
+```
+CronJob (*/5) ──crea──▶ Pod
+                        ├─ get-ip (Python):   obtiene la IP del pod (Downward API),
+                        │                     escribe /data/<timestamp>.txt y loguea
+                        │                     "Timestamp de ejecución: <timestamp>"
+                        ├─ emptyDir /data:    volumen compartido entre ambos
+                        └─ upload-s3 (sh):    espera el archivo, lo sube a
+                                              s3://<bucket>/outputs/<timestamp>.txt
+                                              autenticado SOLO vía IRSA, y termina
+```
 
-<p align="center">
-<img src="https://i.ibb.co/QMKPzMS/Items.png" alt="Items" border="0">
-</p>
+Detalles que importan:
 
-Como medida de seguridad, utilicé [`GitGuardian`](https://www.gitguardian.com), el cual me permite realizar diferentes acciones como escanear los `pull requests` antes de hacer merge, escanear de manera automatizada o bajo demanda el repositorio en busca de fallos de seguridad, con el fin de asegurar la mayor calidad del código y evitar que se introduzcan brechas de seguridad indeseadas.
+- **El nombre del archivo es el timestamp** (UTC, sin `:` para que sea una key válida): `2026-07-18T15-25-01Z.txt`. Su contenido: la IP privada y el mismo timestamp.
+- El escritor guarda a un `.tmp` y hace **rename atómico**: el uploader nunca ve archivos a medias.
+- Un Job termina cuando *todos* sus contenedores terminan — por eso el uploader espera el archivo (con timeout), sube y sale. Si algo falla, el Job reintenta (`backoffLimit: 2`) y nunca corren dos a la vez (`concurrencyPolicy: Forbid`).
+- El pod corre sin root, con filesystem de solo lectura y sin acceso al IMDS del nodo — la **única** identidad AWS que puede usar es el rol IRSA, que solo permite `s3:PutObject` sobre `outputs/*`.
 
-Aquí un ejemplo de una de las validaciones en un `pull request`:
+## Cómo ejecutar Terraform
 
-<p align="center">
-<img src="https://i.ibb.co/mt0YBxj/Git-Guardian.png" alt="Git-Guardian" border="0">
-</p>
+**Requisitos**: Terraform ≥ 1.11, AWS CLI con credenciales, y el bucket S3 del backend creado (una sola vez — el backend no puede crearse a sí mismo).
 
-Otra de las acciones tomadas, y que formaban parte del reto, fue proteger las ramas principales `develop`, `release` y `master`, lo cual se realizó agregando nuevas reglas con la ayuda de las configuraciones de ramas que proporciona GitHub.
+```bash
+cd Terraform/envs/dev
+terraform init
+terraform plan
+terraform apply   # ~15-20 min, EKS es lo lento
+```
 
-En mi caso y según la definición de la prueba, se habilitaron las siguientes reglas:
+El **primer apply debe ser local**: crea los roles OIDC que los pipelines necesitan para autenticarse (dependencia circular inevitable). A partir de ahí, todo entra por pipeline:
 
-- Requerir un `pull request` antes de hacer merge (*Requiriendo 1 aprobador*).
-- Requerir que los `status checks` pasen.
-- Restringir la eliminación de ramas.
+```
+feature/* ──push──▶ plan (fmt/init/validate/plan)
+    │
+    └──PR a develop──▶ check "plan" + 1 aprobación ──merge──▶ apply automático
+                                                          └─▶ build + deploy de la app
+```
 
-## Notas finales:
-En la infraestructura de Terraform, generé 4 subnets (*2 públicas y 2 privadas*) en mi VPC como medida adicional, por si fueran necesarias.
+Único secret requerido en GitHub: `AWS_ACCOUNT_ID` (no es una credencial, solo el número de cuenta para armar los ARNs).
 
-Como extra decidi que en el script que obtiene la direccion ipv4 privada tambien se anexaran la ipv6 e ipv4 publica siempre y cuando sea capaz de obtenerlas.
+## Decisiones técnicas relevantes
 
-Finalmente, agradezco la oportunidad y la confianza depositada en mí, dándome la posibilidad de pertenecer al equipo. Me divertí realizando el proyecto y, independientemente del resultado, agradecería que me brindaran retroalimentación con respecto a mi desempeño en la prueba.
+| Decisión | Por qué |
+|---|---|
+| **CronJob** (no Deployment con loop) | La tarea es periódica y de vida corta; un loop infinito no distingue "éxito" de "vivo" y consume recursos 24/7 |
+| **OIDC para GitHub Actions** | Cero access keys guardadas; el trust policy limita quién asume cada rol: el de Terraform al repo, el de deploy solo a `develop`/`main` |
+| **IRSA para el pod** | Credenciales temporales por-pod con un único permiso (`PutObject` en `outputs/*`); IMDS bloqueado (`hop_limit=1`) para que ningún pod robe el rol del nodo |
+| **VPC Endpoint S3 (Gateway)** | El upload viaja por red interna de AWS: gratis, sin pasar por el NAT y sin tocar internet |
+| **Un solo NAT Gateway** | Decisión de costo para dev (~32 USD/mes c/u); en prod iría uno por AZ |
+| **Endpoint público del API server habilitado** | GitHub Actions y kubectl están fuera de la VPC; restringible por CIDR vía variable. Privado total exigiría VPN o runners self-hosted |
+| **Access entries (no `aws-auth`)** | Los permisos dentro del cluster son recursos Terraform auditables, no un ConfigMap frágil |
+| **Tags ECR inmutables + tag por SHA de commit** | Trazabilidad exacta imagen↔commit y rollback trivial; nadie puede re-pushear sobre un tag existente |
+| **Lock nativo de S3** (`use_lockfile`) | Elimina la tabla DynamoDB: una pieza menos que crear, pagar y permisar (Terraform ≥ 1.11) |
+| **OIDC provider de GitHub como data source** | Es único por cuenta y ya existía; referenciarlo (no poseerlo) evita que un `destroy` rompa a otros usuarios de la cuenta |
+| **Tags obligatorios vía `default_tags`** | `username`, `environment` y `project` llegan a todos los recursos desde el provider: imposible olvidar uno |
+
+## Observabilidad
+
+- Logs del **control plane** (api, audit, authenticator) en CloudWatch con retención de 30 días — estos los envía EKS directamente.
+- Add-on **amazon-cloudwatch-observability**: despliega **Fluent Bit** como DaemonSet, que lee el stdout de cada pod desde el nodo, lo **enriquece con metadata de Kubernetes** (pod, namespace, contenedor, imagen) y lo envía a CloudWatch. Por eso los logs persisten aunque el pod ya no exista — a diferencia de `kubectl logs`, que lee directo del nodo y muere con el pod.
+
+El recorrido de cada línea de log:
+
+```
+print() en el contenedor → containerd lo escribe en el nodo → Fluent Bit lo lee,
+lo enriquece y lo envía → /aws/containerinsights/<cluster>/application
+```
+
+Para visualizarlos desde la CLI:
+
+```bash
+# últimos 30 minutos
+aws logs tail /aws/containerinsights/flypass-test-dev-eks/application --since 30m --region us-west-2
+
+# en vivo (como kubectl logs -f, pero persistente)
+aws logs tail /aws/containerinsights/flypass-test-dev-eks/application --follow --region us-west-2
+
+# buscar el log obligatorio del reto
+aws logs filter-log-events --log-group-name /aws/containerinsights/flypass-test-dev-eks/application \
+  --filter-pattern '"Timestamp de"' --region us-west-2 --max-items 5
+```
+
+> Nota (Git Bash en Windows): los argumentos que empiezan con `/` se convierten a rutas de Windows y rompen el comando. Antepón `MSYS_NO_PATHCONV=1` o usa PowerShell.
+
+## Verificación rápida
+
+```bash
+aws eks update-kubeconfig --region us-west-2 --name flypass-test-dev-eks
+kubectl get cronjob -n flypass                          # programado cada 5 min
+kubectl logs -n flypass <pod> -c get-ip                 # "Timestamp de ejecución: ..."
+aws s3 ls s3://flypass-test-dev-outputs-<acct>/outputs/ # los .txt con nombre timestamp
+```
+
+## Referencias
+
+**OIDC (GitHub Actions → AWS)**
+- [Configuring OpenID Connect in Amazon Web Services — GitHub Docs](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
+- [About security hardening with OpenID Connect — GitHub Docs](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
+- [Create an OpenID Connect identity provider in IAM — AWS Docs](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html)
+- [aws-actions/configure-aws-credentials — GitHub](https://github.com/aws-actions/configure-aws-credentials)
+
+**IRSA (IAM Roles for Service Accounts)**
+- [IAM roles for service accounts — AWS EKS Docs](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
+- [Identity and Access Management — EKS Best Practices Guide](https://docs.aws.amazon.com/eks/latest/best-practices/identity-and-access-management.html)
+
+**Terraform en AWS (estructura y buenas prácticas)**
+- [Best practices for using the Terraform AWS Provider — AWS Prescriptive Guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/terraform-aws-provider-best-practices/introduction.html)
+- [Repository structure — AWS Prescriptive Guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/terraform-aws-provider-best-practices/structure.html)
+- [S3 backend (state y lockfile nativo) — Terraform Docs](https://developer.hashicorp.com/terraform/language/backend/s3)
+- [Custom validation rules en variables — Terraform Docs](https://developer.hashicorp.com/terraform/language/values/variables#custom-validation-rules)
+
+---
 
 <p align="center">
   <b>Hecho con &#10084; por: Sebastián. </b>
