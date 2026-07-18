@@ -3,3 +3,5 @@
 *.tfstate.backup
 crash.log
 *.tfplan
+*_override.tf
+VALIDACIONES.md
