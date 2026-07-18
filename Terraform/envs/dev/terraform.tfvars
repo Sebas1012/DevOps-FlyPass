@@ -22,7 +22,7 @@ node_desired_size   = 1
 node_min_size       = 1
 node_max_size       = 2
 
-github_repository = "Sebas1012/DevOps-FlyPass"
+github_repository = "Sebas1012/CloudOps-FlyPass"
 
 tf_state_bucket = "dev-terraform-state-s3-sebas1012"
 
