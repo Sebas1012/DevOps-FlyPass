@@ -1,0 +1,30 @@
+# Para probar contra un simulador local de AWS (Floci/LocalStack):
+#   1. Copia este archivo como local_override.tf (está gitignoreado)
+#   2. Ajusta la URL del endpoint al puerto de tu simulador
+#   3. terraform init -reconfigure && terraform plan
+# Terraform fusiona los *_override.tf: el backend pasa a ser local y el
+# provider apunta al simulador. No afecta CI ni el despliegue real.
+
+terraform {
+  backend "local" {}
+}
+
+provider "aws" {
+  access_key                  = "test"
+  secret_key                  = "test"
+  skip_credentials_validation = true
+  skip_metadata_api_check     = true
+  skip_requesting_account_id  = true
+  s3_use_path_style           = true
+
+  endpoints {
+    ec2      = "http://localhost:4566"
+    s3       = "http://localhost:4566"
+    iam      = "http://localhost:4566"
+    sts      = "http://localhost:4566"
+    eks      = "http://localhost:4566"
+    ecr      = "http://localhost:4566"
+    dynamodb = "http://localhost:4566"
+    logs     = "http://localhost:4566"
+  }
+}

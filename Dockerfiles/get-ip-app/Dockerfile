@@ -1,11 +1,10 @@
-FROM python:3.12.5-alpine3.20
+FROM python:3.13-alpine3.22
 
-WORKDIR /usr/src/get_ip
+RUN adduser -D -u 10001 app
 
+WORKDIR /app
 COPY get_ip.py .
 
-RUN pip install requests
+USER app
 
-VOLUME ["/data"]
-
-CMD ["sh", "-c", "while true; do python3 /usr/src/get_ip/get_ip.py; sleep 60; done"]
+ENTRYPOINT ["python3", "/app/get_ip.py"]

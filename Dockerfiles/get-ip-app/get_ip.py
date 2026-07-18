@@ -1,54 +1,49 @@
+import json
+import os
 import socket
-import requests
-import time
+from datetime import datetime, timezone
 
-def obtener_ip_privada():
-    try:
-        hostname = socket.gethostname()
-        ip_privada = socket.gethostbyname(hostname)
-        return ip_privada
-    except Exception as e:
-        return f"Error obteniendo IP privada: {e}"
+DATA_DIR = "/data"
 
-def obtener_ipv6():
-    try:
-        direcciones = socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET6)
-        if direcciones:
-            return direcciones[0][4][0]
-        else:
-            return "No disponible"
-    except Exception as e:
-        return f"Error obteniendo IPv6: {e}"
 
-def obtener_ip_publica():
+def private_ip():
+    ip = os.environ.get("POD_IP")
+    if ip:
+        return ip
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        response = requests.get("https://api.ipify.org?format=text", timeout=5)
-        if response.status_code == 200:
-            return response.text
-        else:
-            return "Error al obtener IP pública"
-    except Exception as e:
-        return f"Error obteniendo IP pública: {e}"
+        s.connect(("10.255.255.255", 1))
+        return s.getsockname()[0]
+    finally:
+        s.close()
 
-def guardar_ips_en_archivo(archivo, ip_privada, ipv6, ip_publica):
-    try:
-        with open(archivo, "w") as file:
-            file.write(f"IP Privada: {ip_privada}, IPV6: {ipv6}, IP Pública: {ip_publica}\n")
-    except Exception as e:
-        print(f"Error al guardar las IPs en el archivo: {e}")
 
 def main():
-    archivo = "/data/ip_log.txt"
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
+    ip = private_ip()
 
-    ip_privada = obtener_ip_privada()
-    ipv6 = obtener_ipv6()
-    ip_publica = obtener_ip_publica()
+    final_path = os.path.join(DATA_DIR, f"{ts}.txt")
+    tmp_path = f"{final_path}.tmp"
+    with open(tmp_path, "w") as f:
+        f.write(f"IP privada: {ip}\n")
+        f.write(f"Timestamp de ejecución: {ts}\n")
+    # rename atómico: el sidecar solo ve archivos .txt completos
+    os.replace(tmp_path, final_path)
 
-    print(f"IPv4 Privada: {ip_privada}; IPV6: {ipv6}; IPv4 Publica: {ip_publica}")
-    guardar_ips_en_archivo(archivo, ip_privada, ipv6, ip_publica)
+    print(f"Timestamp de ejecución: {ts}", flush=True)
+    print(
+        json.dumps(
+            {
+                "level": "info",
+                "event": "file_created",
+                "file": final_path,
+                "private_ip": ip,
+                "timestamp": ts,
+            }
+        ),
+        flush=True,
+    )
 
 
 if __name__ == "__main__":
     main()
-
-
