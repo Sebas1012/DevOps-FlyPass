@@ -100,8 +100,31 @@ feature/* ──push──▶ plan (fmt/init/validate/plan)
 
 ## Observabilidad
 
-- Logs del **control plane** (api, audit, authenticator) en CloudWatch con retención de 30 días.
-- Add-on **amazon-cloudwatch-observability**: el stdout de los pods (incluido el log obligatorio `Timestamp de ejecución: <ts>` y líneas JSON estructuradas) llega a `/aws/containerinsights/<cluster>/application`, con métricas y dashboards de Container Insights incluidos.
+- Logs del **control plane** (api, audit, authenticator) en CloudWatch con retención de 30 días — estos los envía EKS directamente.
+- Add-on **amazon-cloudwatch-observability**: despliega **Fluent Bit** como DaemonSet, que lee el stdout de cada pod desde el nodo, lo **enriquece con metadata de Kubernetes** (pod, namespace, contenedor, imagen) y lo envía a CloudWatch. Por eso los logs persisten aunque el pod ya no exista — a diferencia de `kubectl logs`, que lee directo del nodo y muere con el pod.
+
+El recorrido de cada línea de log:
+
+```
+print() en el contenedor → containerd lo escribe en el nodo → Fluent Bit lo lee,
+lo enriquece y lo envía → /aws/containerinsights/<cluster>/application
+```
+
+Para visualizarlos desde la CLI:
+
+```bash
+# últimos 30 minutos
+aws logs tail /aws/containerinsights/flypass-test-dev-eks/application --since 30m --region us-west-2
+
+# en vivo (como kubectl logs -f, pero persistente)
+aws logs tail /aws/containerinsights/flypass-test-dev-eks/application --follow --region us-west-2
+
+# buscar el log obligatorio del reto
+aws logs filter-log-events --log-group-name /aws/containerinsights/flypass-test-dev-eks/application \
+  --filter-pattern '"Timestamp de"' --region us-west-2 --max-items 5
+```
+
+> Nota (Git Bash en Windows): los argumentos que empiezan con `/` se convierten a rutas de Windows y rompen el comando. Antepón `MSYS_NO_PATHCONV=1` o usa PowerShell.
 
 ## Verificación rápida
 
