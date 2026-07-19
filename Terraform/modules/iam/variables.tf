@@ -8,6 +8,12 @@ variable "github_repository" {
   type        = string
 }
 
+variable "github_repository_with_ids" {
+  description = "Repositorio con IDs inmutables (owner@id/repo@id), formato del claim sub tras un rename"
+  type        = string
+  default     = ""
+}
+
 variable "state_bucket" {
   description = "Bucket S3 del backend remoto de Terraform"
   type        = string

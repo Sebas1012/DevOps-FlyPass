@@ -152,6 +152,17 @@ variable "github_repository" {
   }
 }
 
+variable "github_repository_with_ids" {
+  description = "Repositorio con IDs inmutables (owner@id/repo@id) que GitHub incluye en el claim sub tras un rename"
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.github_repository_with_ids == "" || can(regex("^[A-Za-z0-9_.-]+@\\d+/[A-Za-z0-9_.-]+@\\d+$", var.github_repository_with_ids))
+    error_message = "github_repository_with_ids debe tener formato owner@id/repo@id, p. ej. Sebas1012@50553819/CloudOps-FlyPass@902605232."
+  }
+}
+
 variable "tf_state_bucket" {
   description = "Bucket S3 del backend remoto (para scoping del rol de Terraform)"
   type        = string

@@ -60,16 +60,17 @@ module "ecr" {
 module "iam" {
   source = "../../modules/iam"
 
-  name_prefix          = local.name_prefix
-  github_repository    = var.github_repository
-  state_bucket         = var.tf_state_bucket
-  oidc_provider_arn    = module.eks.oidc_provider_arn
-  oidc_provider_url    = module.eks.oidc_provider_url
-  s3_bucket_arn        = module.s3.bucket_arn
-  ecr_repository_arn   = module.ecr.repository_arn
-  eks_cluster_arn      = module.eks.cluster_arn
-  irsa_namespace       = var.irsa_namespace
-  irsa_service_account = var.irsa_service_account
+  name_prefix                = local.name_prefix
+  github_repository          = var.github_repository
+  github_repository_with_ids = var.github_repository_with_ids
+  state_bucket               = var.tf_state_bucket
+  oidc_provider_arn          = module.eks.oidc_provider_arn
+  oidc_provider_url          = module.eks.oidc_provider_url
+  s3_bucket_arn              = module.s3.bucket_arn
+  ecr_repository_arn         = module.ecr.repository_arn
+  eks_cluster_arn            = module.eks.cluster_arn
+  irsa_namespace             = var.irsa_namespace
+  irsa_service_account       = var.irsa_service_account
 }
 
 # El pipeline de deploy necesita permisos dentro del cluster; se otorgan vía

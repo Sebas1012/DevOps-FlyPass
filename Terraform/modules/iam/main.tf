@@ -4,6 +4,24 @@ data "aws_region" "current" {}
 locals {
   account_id = data.aws_caller_identity.current.account_id
   region     = data.aws_region.current.region
+
+  # GitHub emite el claim sub con IDs inmutables (owner@id/repo@id) tras un
+  # rename del repositorio; se aceptan ambos formatos para no romper la federación.
+  github_repos = compact([var.github_repository, var.github_repository_with_ids])
+
+  gha_terraform_subjects = flatten([
+    for repo in local.github_repos : [
+      "repo:${repo}:ref:refs/heads/*",
+      "repo:${repo}:pull_request"
+    ]
+  ])
+
+  gha_deploy_subjects = flatten([
+    for repo in local.github_repos : [
+      "repo:${repo}:ref:refs/heads/develop",
+      "repo:${repo}:ref:refs/heads/main"
+    ]
+  ])
 }
 
 # El OIDC provider de GitHub es único por cuenta y ya existía en esta;
@@ -28,10 +46,7 @@ resource "aws_iam_role" "gha_terraform" {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
         }
         StringLike = {
-          "token.actions.githubusercontent.com:sub" = [
-            "repo:${var.github_repository}:ref:refs/heads/*",
-            "repo:${var.github_repository}:pull_request"
-          ]
+          "token.actions.githubusercontent.com:sub" = local.gha_terraform_subjects
         }
       }
     }]
@@ -130,6 +145,7 @@ resource "aws_iam_policy" "tf_platform" {
           "iam:DeleteRole",
           "iam:GetRole",
           "iam:UpdateRole",
+          "iam:UpdateAssumeRolePolicy",
           "iam:TagRole",
           "iam:UntagRole",
           "iam:ListRolePolicies",
@@ -322,10 +338,7 @@ resource "aws_iam_role" "gha_deploy" {
       Condition = {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          "token.actions.githubusercontent.com:sub" = [
-            "repo:${var.github_repository}:ref:refs/heads/develop",
-            "repo:${var.github_repository}:ref:refs/heads/main"
-          ]
+          "token.actions.githubusercontent.com:sub" = local.gha_deploy_subjects
         }
       }
     }]
